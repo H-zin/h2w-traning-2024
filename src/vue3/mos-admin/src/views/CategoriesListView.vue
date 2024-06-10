@@ -50,6 +50,7 @@
         </table>
     </div>
     <button class="btn btn-primary" @click="onload">一覧を取得</button>
+    <button class="btn btn-primary" @click="onRestore">復元</button>
 </template>
 
 <script setup lang="ts">
@@ -66,7 +67,7 @@ const categories = ref([
 async function onload() {
     const url = "http://localhost:8000/api/categories";
     const response = await axios.get(url);
-    categories.value = response.data.data;  // ソート順にする .sort((a, b) => a.sortid - b.sortid);
+    categories.value = response.data.data.sort((a, b) => a.sortid - b.sortid);
 }
 onMounted(onload);
 
@@ -86,17 +87,88 @@ function onedit(item) {
 // 削除ボタン
 function ondelete(item) {
     console.log('ondelete' + item.title);
+    // 削除確認
+    if (confirm('削除しますか？')) {
+        // 削除処理
+        deleteCategory(item);
+    }
 };
 
-// 上へボタン
+// 削除処理 DBから削除 一覧から削除にするため、is_deleteをtrueにするのが正解
+async function deleteCategory(item) {
+    try {
+        const url = `http://localhost:8000/api/categories/${item.id}`;
+        await axios.delete(url);
+        categories.value = categories.value.filter(category => category.id !== item.id);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+// 復元ボタン
+function onRestore(item) {
+    console.log('onRestore' + item.title);
+    // 復元処理
+    restoreCategory(item);
+};
+
+// 復元処理
+async function restoreCategory(item) {
+    try {
+        const url = `http://localhost:8000/api/categories/${item.id}/restore`;
+        await axios.patch(url);
+        categories.value = categories.value.map(category => {
+            if (category.id === item.id) {
+                category.is_delete = false; // 今回はis_deleteをfalseする処理ができているが、新しく作られてしまうこともあるので注意。
+            }
+            return category;
+        });
+    } catch (error) {
+        console.error(error);
+    }
+};
+//　ラムダ式で書いているが、functionで書いても良い。行が長くなるときはfunctionで書く。
+//  function内で宣言した変数は外では使えない。classでまとめて記述するのも一つの方法。
+//　121行目のcategoryは仮変数である。JavaScript以外で、オブジェクト以外を当てはめるとエラーになることも。
+
+
+
+// 上へボタン 上の行と選択した行のsortidを交換する
+// （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
 function onUp(item) {
     console.log('onUp' + item.title);
+    const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
+    if (currentIndex > 0) {
+        const tempSortid = categories.value[currentIndex - 1].sortid;
+        categories.value[currentIndex - 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        updateSortid(item);
+        updateSortid(categories.value[currentIndex - 1]);
+    }
 };
+
+async function updateSortid(item) {
+    try {
+        const url = `http://localhost:8000/api/categories/${item.sortid}`;
+        await axios.patch(url, { sortid: item.sortid });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
 
 // 下へボタン
 function onDown(item) {
     console.log('onDown' + item.title);
+    const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
+    if (currentIndex < categories.value.length - 1) {
+        const temp = categories.value[currentIndex + 1];
+        categories.value[currentIndex + 1] = categories.value[currentIndex];
+        categories.value[currentIndex] = temp;
+    }
 };
+
 
 
 // 削除ボタンを押すと、その行を非表示にする

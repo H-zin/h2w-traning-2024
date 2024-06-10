@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-
     /**
      * Run the migrations.
      */
@@ -14,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('slug');
-            $table->string('name');
-            $table->text('description');
-            $table->string('image');
+            $table->string('slug', 100)->nullable();
+            $table->string('name', 100);
+            $table->text('description')->nullable();
+            $table->string('image', 100)->nullable();
             $table->decimal('price', 10, 2);
-            $table->integer('sortid');
-            $table->boolean('display');
+            $table->integer('sortid')->nullable();
+            $table->boolean('display')->default(true);
             $table->timestamps();
-            $table->boolean('is_delete');
+            $table->softDeletes();
         });
     }
-    
+
     /**
      * Reverse the migrations.
      */
