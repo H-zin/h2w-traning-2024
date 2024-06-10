@@ -14,6 +14,7 @@
     </ul>
     <p>合計: ¥{{ total }}</p>
     <hr>
+    <button class="btn btn-primary" @click="clickOrder">注文確定</button>
 </template>
 
 <script setup lang="ts">

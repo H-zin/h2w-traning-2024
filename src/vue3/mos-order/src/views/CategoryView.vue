@@ -53,6 +53,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { useRouter } from 'vue-router';
+
+const router = useRouter();
+const slug = ref(router.currentRoute.value.params.slug);
+
 
 const categories = ref([
     { id: 1, slug: "slug 1", title: "Category 1", sortid: 1, display: false, created_at: "created_at 1", updated_at: "updated_at 1", is_delete: false },
@@ -78,15 +83,15 @@ async function onload() {
 }
 onMounted(onload) ;
 
-/*
+
 async function onload2() {
-    const url = `http://localhost:8000/api/categorie/${slug.value}/products`;
+    const url = `http://localhost:8000/api/categories/${slug.value}/products`;
     console.log( url )
     const response = await axios.get(url);
     products.value = response.data.data[0].products; 
 }
 onMounted(onload2) ;
-*/
+
 
 
 </script>

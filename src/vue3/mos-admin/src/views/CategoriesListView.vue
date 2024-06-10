@@ -28,6 +28,7 @@
                 </tr>
             </thead>
             <tbody>
+                <transition-group name="change">
                 <tr v-for="category in categories" :key="category.id">
                     <td>{{ category.id}} </td>
                     <td>{{ category.title }}</td>
@@ -45,6 +46,7 @@
                         <button v-on:click="onDown(category)" type="button" class="btn btn-primary">下へ</button>
                     </td>
                 </tr>
+                </transition-group>
             </tbody>
             
         </table>
@@ -135,40 +137,47 @@ async function restoreCategory(item) {
 
 // 上へボタン 上の行と選択した行のsortidを交換する
 // （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
-function onUp(item) {
+async function onUp(item) {
     console.log('onUp' + item.title);
     const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
     if (currentIndex > 0) {
         const tempSortid = categories.value[currentIndex - 1].sortid;
         categories.value[currentIndex - 1].sortid = item.sortid;
         item.sortid = tempSortid;
-        updateSortid(item);
-        updateSortid(categories.value[currentIndex - 1]);
+        onupdate(item);
+        await onupdate(categories.value[currentIndex - 1]);
+        console.log(item.sortid);
+        // ページを更新
+        await onload();
+    }
+};
+// 下へボタン
+async function onDown(item) {
+    console.log('onDown' + item.title);
+    const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
+    if (currentIndex < categories.value.length - 1) {
+        const tempSortid = categories.value[currentIndex + 1].sortid;
+        categories.value[currentIndex + 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        onupdate(item);
+        await onupdate(categories.value[currentIndex + 1]);
+        console.log(item.sortid);
+        // ページを更新
+        await onload();
     }
 };
 
-async function updateSortid(item) {
+// 更新処理
+async function onupdate(item) {
+    console.log('onupdate');
+    const url = `http://localhost:8000/api/categories/${item.id}`;
     try {
-        const url = `http://localhost:8000/api/categories/${item.sortid}`;
-        await axios.patch(url, { sortid: item.sortid });
+        await axios.put(url, item);
+        router.push({ name: 'categories-list' });
     } catch (error) {
         console.error(error);
     }
 }
-
-
-
-// 下へボタン
-function onDown(item) {
-    console.log('onDown' + item.title);
-    const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
-    if (currentIndex < categories.value.length - 1) {
-        const temp = categories.value[currentIndex + 1];
-        categories.value[currentIndex + 1] = categories.value[currentIndex];
-        categories.value[currentIndex] = temp;
-    }
-};
-
 
 
 // 削除ボタンを押すと、その行を非表示にする
@@ -226,6 +235,10 @@ select {
     margin-right: 10px;
     position: relative;
     left: 3%;
+}
+
+.change {
+    transition: all 0.5s;
 }
 
 

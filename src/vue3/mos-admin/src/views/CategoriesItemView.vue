@@ -5,7 +5,7 @@
             <div class="col-md-6">
                 <div class="mb-3">
                     <label for="id" class="form-label">ID:</label>
-                    <input type="number" id="id" v-model="item.id" class="form-control">
+                    {{ item.id }}
                 </div>
                 <div class="mb-3">
                     <label for="slug" class="form-label">Slug:</label>
@@ -26,10 +26,6 @@
             </div>
             <div class="col-md-6">
                 <div class="mb-3">
-                    <label for="price" class="form-label">Price:</label>
-                    <input type="number" id="price" v-model="item.price" class="form-control">
-                </div>
-                <div class="mb-3">
                     <label for="sortid" class="form-label">Sort ID:</label>
                     <input type="number" id="sortid" v-model="item.sortid" class="form-control">
                 </div>
@@ -37,17 +33,13 @@
                     <label for="display" class="form-label">Display:</label>
                     <input type="checkbox" id="display" v-model="item.display" class="form-check-input">
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" v-if="item.id !=0">
                     <label for="created_at" class="form-label">Created At:</label>
-                    <input type="datetime-local" id="created_at" v-model="item.created_at" class="form-control">
+                    {{ item.created_at }}
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" v-if="item.id !=0">
                     <label for="updated_at" class="form-label">Updated At:</label>
-                    <input type="datetime-local" id="updated_at" v-model="item.updated_at" class="form-control">
-                </div>
-                <div class="mb-3">
-                    <label for="is_delete" class="form-label">Is Delete:</label>
-                    <input type="checkbox" id="is_delete" v-model="item.is_delete" class="form-check-input">
+                    {{ item.updated_at }}
                 </div>
             </div>
         </div>
@@ -107,6 +99,25 @@ async function onload() {
 
 onMounted(onload);
 
+// バリデーションチェック
+async function varidate() {
+    // タイトルが空の場合はエラー
+    if (item.value.title === '') {
+        alert('タイトルを入力してください');
+        return false;
+    }
+    // slugが重複している場合はエラー
+    const url = 'http://localhost:8000/api/categories';
+    const response = await axios.get(url);
+    const categories = response.data.data;
+    const duplicate = categories.find(category => category.slug === item.value.slug);
+    if (duplicate && duplicate.id !== item.value.id) {
+        alert('Slugが重複しています');
+        return false;
+    }
+    return true;
+}
+
 
 /**
  *Updates the category item.
@@ -117,6 +128,10 @@ onMounted(onload);
 
 async function onupdate() {
     console.log('onupdate');
+    // バリデーションチェック
+    if (!await varidate()) {
+        return;
+    }
     var url = 'http://localhost:8000/api/categories/' + id.value;
     const response = await axios.put(url, item.value)
     router.push({ name: 'categories-list' });
@@ -149,7 +164,7 @@ function formatDateTime(datetimeStr: string) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     // 目的の形式にフォーマット
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}年${month}月${day}日${hours}時${minutes}分`;
 }
 
 /**

@@ -4,7 +4,7 @@
         <div class="ProductLink-wrap">
             <ul v-for="product in products" :key="product.id" class="ProductLink-list">
                 <li class="ProductLink-item">
-                    <a class="ProductLink" href=""><!-- herf="カートに入れる画面" -->
+                    <a class="ProductLink"><!-- herf="カートに入れる画面" -->
                         <div class="ProductLink-inner">
                             <div class="ProductLink-img">
                                 <img :src="product.image" alt="product.name">
@@ -15,7 +15,7 @@
                                 </p>
                                 <ul class="price-list">
                                     <li class="price">
-                                        ￥{{ product.price }}<button class="btn btn-primary" @click="clickCart(product)">カート</button>
+                                        ￥{{ product.price }}<button class="btn btn-primary" @click="clickCart(product)">カートへ追加</button>
                                     </li>
                                 </ul>
                             </div>
@@ -49,7 +49,7 @@ const products = ref([
 
 
 async function onload() {
-    const url = `http://localhost:8000/api/categorie/${slug.value}/products`;
+    const url = `http://localhost:8000/api/categories/${slug.value}/products`;
     console.log( url )
     const response = await axios.get(url);
     products.value = response.data.data[0].products; 
@@ -65,6 +65,7 @@ async function clickCart(product) {
     // カートに追加
     const cartStore = useCartStore();
     cartStore.addCart(product);
+    alert('カートに追加しました');
 }
 
 

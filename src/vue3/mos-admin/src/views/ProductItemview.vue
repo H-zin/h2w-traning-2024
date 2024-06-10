@@ -4,7 +4,7 @@
 
         <div class="mb-3">
             <label for="id" class="form-label">ID</label>
-            <input type="text" id="id" v-model="item.id" class="form-control">
+            {{ item.id }}
         </div>  
         <div class="mb-3">
             <label for="slug" class="form-label">Slug</label>
@@ -36,15 +36,11 @@
         </div>
         <div class="mb-3">
             <label for="created_at" class="form-label">Created At</label>
-            <input type="datetime-local" id="created_at" v-model="item.created_at" class="form-control">
+            {{ item.created_at }}
         </div>
         <div class="mb-3">
             <label for="updated_at" class="form-label">Updated At</label>
-            <input type="datetime-local" id="updated_at" v-model="item.updated_at" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="is_delete" class="form-label">Is Delete</label>
-            <input type="checkbox" id="is_delete" v-model="item.is_delete" class="form-check-input">
+            {{ item.updated_at }}
         </div>
         <hr />
 
@@ -104,9 +100,32 @@ async function onload() {
     item.value.created_at = formatDateTime(item.value.created_at);
     item.value.updated_at = formatDateTime(item.value.updated_at);
 }
-
 /// ロード時に実行
 onMounted(onload);
+
+// バリデーションチェック
+async function varidate() {
+    // タイトルが空の場合はエラー
+    if (item.value.name === '') {
+        alert('タイトルを入力してください');
+        return false;
+    }
+    // slugが重複している場合はエラー
+    const url = 'http://localhost:8000/api/products';
+    const response = await axios.get(url);
+    const products = response.data.data;
+    const duplicate = products.find(product => product.slug === item.value.slug);
+    if (duplicate && duplicate.id !== item.value.id) {
+        alert('Slugが重複しています');
+        return false;
+    }
+    // 価格が数字でない場合はエラー
+    if (isNaN(Number(item.value.price))) {
+        alert('価格は数字で入力してください');
+        return false;
+    }
+    return true;
+}
 
 /**
  * Updates the product item.
@@ -116,6 +135,10 @@ onMounted(onload);
  */
 async function onupdate() {
     console.log('onupdate');
+    // バリデーションチェック
+    if (!await varidate()) {
+        return;
+    }
     var url = 'http://localhost:8000/api/products/' + id.value;
     const response = await axios.put(url, item.value)
     router.push({ name: 'product-list' });
@@ -148,7 +171,7 @@ function formatDateTime(datetimeStr: string) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     // 目的の形式にフォーマット
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}年${month}月${day}日${hours}時${minutes}分`;
 }
 
 /**

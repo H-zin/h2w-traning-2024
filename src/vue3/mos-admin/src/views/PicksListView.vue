@@ -97,25 +97,45 @@ function ondelete(item) {
 }
 */
 
-// 上へボタンを押したら一つ上に移動する（順番はsortidで判別する
+// 上へボタン 上の行と選択した行のsortidを交換する
+// （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
 function onUp(item) {
-    console.log('onUp ' + item.name);
-    const index = picks.value.findIndex((p) => p.sortid === item.sortid);
-    if (index > 0) {
-        const temp = picks.value[index - 1];
-        picks.value[index - 1] = picks.value[index];
-        picks.value[index] = temp;
+    console.log('onUp' + item.title);
+    const currentIndex = picks.value.findIndex(pick => pick.sortid === item.sortid);
+    if (currentIndex > 0) {
+        const tempSortid = picks.value[currentIndex - 1].sortid;
+        picks.value[currentIndex - 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        onupdate(item);
+        onupdate(picks.value[currentIndex - 1]);
+        console.log(item.sortid);
+        // ページをリロード
+        
     }
-}
-
-// 下へボタンを押したら一つ下に移動する。（順番はsortidで判別する
+};
+// 下へボタン
 function onDown(item) {
-    console.log('onDown ' + item.name);
-    const index = picks.value.findIndex((p) => p.sortid === item.sortid);
-    if (index < picks.value.length - 1) {
-        const temp = picks.value[index + 1];
-        picks.value[index + 1] = picks.value[index];
-        picks.value[index] = temp;
+    console.log('onDown' + item.title);
+    const currentIndex = picks.value.findIndex(pick => pick.sortid === item.sortid);
+    if (currentIndex < picks.value.length - 1) {
+        const tempSortid = picks.value[currentIndex + 1].sortid;
+        picks.value[currentIndex + 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        onupdate(item);
+        onupdate(picks.value[currentIndex + 1]);
+        console.log(item.sortid);
+    }
+};
+
+// 更新処理
+async function onupdate(item) {
+    console.log('onupdate');
+    const url = `http://localhost:8000/api/products/${item.id}`;
+    try {
+        await axios.put(url, item);
+        router.push({ name: 'picks-list' });
+    } catch (error) {
+        console.error(error);
     }
 }
 

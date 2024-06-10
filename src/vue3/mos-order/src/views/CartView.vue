@@ -6,7 +6,6 @@
         <ul class="Cart-list">
             <li v-for="product in items" :key="product.id" class="Cart-item">
                 <div class="Cart-inner">
-                    <hr>
                     <div class="Cart-img">
                         <!--商品画像-->
                         <img :src="product.image" alt="product.name">
@@ -14,25 +13,26 @@
                     <div class="Cart-name">
                         <!--商品名-->
                         {{ product.name }}
+                        <div class="Cart-quantity">
+                            <!--増加-->
+                            <button @click="incrementQuantity(product); updateQuantity(items)">+</button>
+                            <!--数量-->
+                            {{ product.quantity }}
+                            <!--減少-->
+                            <button @click="decrementQuantity(product); updateQuantity(items)">-</button>
+                            個
+                        </div>
                     </div>
+                    <hr>
                     <div class="Cart-price">
                         ¥{{ product.price }}
-                    </div>
-                    <div class="Cart-quantity">
-                        <!--増加-->
-                        <button @click="incrementQuantity(product); updateQuantity(items)">+</button>
-                        <!--数量-->
-                        {{ product.quantity }}
-                        <!--減少-->
-                        <button @click="decrementQuantity(product); updateQuantity(items)">-</button>
-                        個
-                    </div>
-                    <div class="Cart-subtotal">
-                        <!--小計-->
-                        ¥{{ product.price * product.quantity }}
+                        <div class="Cart-subtotal">
+                            <!--小計-->
+                            ¥{{ product.price * product.quantity }}
+                        </div>                        
                     </div>
                     <!--削除ボタン-->
-                    <button @click="removeCart(product.id)">削除</button>
+                    <button @click="removeCart(product.id)" class="Cart-delete">削除</button>
                 </div>
             </li>
         </ul>
@@ -96,7 +96,7 @@ const clickOrder = () => {
 
 .Cart-wrap {
     background-color: beige;
-    padding: 20px;
+    padding: 30px;
 }
 
 .Cart-item {
@@ -105,6 +105,40 @@ const clickOrder = () => {
 
 .Cart-inner {
     background-color: white;
+    padding: 20px;
+    margin: 10px;
 }
+
+.Cart-img {
+    float: left;
+    margin-right: 20px;
+    width: 100px;
+    height: 100px;
+}
+
+.Cart-name {
+    font-size: 20px;
+    margin-left: 120px;
+}
+
+.Cart-price {
+    font-size: 20px;
+    margin-left: 120px;
+}
+
+.Cart-quantity {
+    font-size: 20px;
+    float: right;
+}
+
+.Cart-subtotal {
+    font-size: 20px;
+    float: right;
+}
+
+.Cart-delete {
+    float: right;
+}
+
 
 </style>

@@ -2,12 +2,10 @@
     <div>
         <h1>ハンバーガー注文 商品一覧</h1>
 
-        <select name="StoreDesignation">
-            <option value="store0">店舗指定</option>
-            <option value="store1">○○店</option>
-            <option value="store2">△△店</option>
-            <option value="store3">◇◇店</option>
-            <!-- 他のオプションも追加 -->
+        <select v-model="stores">
+            <!--起動時は「店舗指定」と表示-->
+            
+            <option v-for="store in stores" :key="store.id" :value="store.id">{{ store.name }}</option>
         </select>
 
         <button class="btn btn-success" @click="onadd">新規作成</button>
@@ -57,8 +55,13 @@ import axios from 'axios';
 
 const router = useRouter();
 
+
 const products = ref([
     { id: 1, slug: 'slug 1', name: 'Category 1' , description: 'Description 1', image: 'Image 1', sortid: 1, price: 'Price 1', display: false ,created_at: 'created_at 1', updated_at: 'updated_at 1',is_delete: false},
+]);
+
+const stores = ref([
+    { id: 1, name: 'Store 1' , address: '' ,created_at: 'created_at 1', updated_at: 'updated_at 1',delete_at: null},
 ]);
 
 async function onload() {
@@ -67,6 +70,15 @@ async function onload() {
     products.value = response.data.data.sort((a, b) => a.sortid - b.sortid);
 }
 onMounted(onload);
+
+
+async function onload2() {
+    const url = `http://localhost:8000/api/stores`;
+    console.log( url )
+    const response = await axios.get(url);
+    stores.value = response.data.data; 
+}
+onMounted(onload2) ;
 
 
 // 新規作成ボタン
@@ -103,28 +115,50 @@ async function deleteProduct(item) {
     }
 };
 
-
-// 上へボタン
+// 上へボタン 上の行と選択した行のsortidを交換する
+// （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
 function onUp(item) {
     console.log('onUp' + item.title);
-    const currentIndex = products.value.findIndex(product => product.sortid === item.sortid);
+    const currentIndex = products.value.findIndex(product => product.id === item.id);
     if (currentIndex > 0) {
-        const temp = products.value[currentIndex - 1];
-        products.value[currentIndex - 1] = products.value[currentIndex];
-        products.value[currentIndex] = temp;
+        const tempSortid = products.value[currentIndex - 1].sortid;
+        products.value[currentIndex - 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        onupdate(item);
+        onupdate(products.value[currentIndex - 1]);
+        console.log(item.sortid);
+        // ページをリロード
+        
     }
 };
-
 // 下へボタン
 function onDown(item) {
     console.log('onDown' + item.title);
-    const currentIndex = products.value.findIndex(product => product.sortid === item.sortid);
+    const currentIndex = products.value.findIndex(product => product.id === item.id);
     if (currentIndex < products.value.length - 1) {
-        const temp = products.value[currentIndex + 1];
-        products.value[currentIndex + 1] = products.value[currentIndex];
-        products.value[currentIndex] = temp;
+        const tempSortid = products.value[currentIndex + 1].sortid;
+        products.value[currentIndex + 1].sortid = item.sortid;
+        item.sortid = tempSortid;
+        onupdate(item);
+        onupdate(products.value[currentIndex + 1]);
+        console.log(item.sortid);
     }
 };
+
+// 更新処理
+async function onupdate(item) {
+    console.log('onupdate');
+    const url = `http://localhost:8000/api/products/${item.id}`;
+    try {
+        await axios.put(url, item);
+        router.push({ name: 'product-list' });
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+
+// checkbox
 
 
 </script>
