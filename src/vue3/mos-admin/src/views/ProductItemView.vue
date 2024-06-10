@@ -135,6 +135,10 @@ async function varidate() {
  */
 async function onupdate() {
     console.log('onupdate');
+    // バリデーションチェック
+    if (!await varidate()) {
+        return;
+    }
     var url = 'http://localhost:8000/api/products/' + id.value;
     const response = await axios.put(url, item.value)
     router.push({ name: 'product-list' });
@@ -167,7 +171,7 @@ function formatDateTime(datetimeStr: string) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     // 目的の形式にフォーマット
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}年${month}月${day}日${hours}時${minutes}分`;
 }
 
 /**
