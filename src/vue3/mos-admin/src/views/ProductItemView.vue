@@ -34,11 +34,11 @@
             <label for="display" class="form-label">Display</label>
             <input type="checkbox" id="display" v-model="item.display" class="form-check-input">
         </div>
-        <div class="mb-3">
+        <div class="mb-3" v-if="item.id !=0">
             <label for="created_at" class="form-label">Created At</label>
             {{ item.created_at }}
         </div>
-        <div class="mb-3">
+        <div class="mb-3" v-if="item.id !=0">
             <label for="updated_at" class="form-label">Updated At</label>
             {{ item.updated_at }}
         </div>
@@ -104,19 +104,29 @@ async function onload() {
 onMounted(onload);
 
 // バリデーションチェック
-async function varidate() {
-    // タイトルが空の場合はエラー
-    if (item.value.name === '') {
-        alert('タイトルを入力してください');
+async function validate() {
+    // slugが空の場合はエラー
+    if (item.value.slug === '') {
+        alert('Slugを入力してください');
         return false;
     }
     // slugが重複している場合はエラー
     const url = 'http://localhost:8000/api/products';
     const response = await axios.get(url);
     const products = response.data.data;
-    const duplicate = products.find(product => product.slug === item.value.slug);
-    if (duplicate && duplicate.id !== item.value.id) {
+    const found = products.find(product => product.slug === item.value.slug);
+    if (found && found.id !== item.value.id) {
         alert('Slugが重複しています');
+        return false;
+    }
+    // 商品名が空の場合はエラー
+    if (item.value.name === '') {
+        alert('商品名を入力してください');
+        return false;
+    }
+    // sortidが0以下の場合はエラー
+    if (item.value.sortid <= 0) {
+        alert('Sort IDは1以上の数値を入力してください');
         return false;
     }
     // 価格が数字でない場合はエラー
@@ -136,7 +146,7 @@ async function varidate() {
 async function onupdate() {
     console.log('onupdate');
     // バリデーションチェック
-    if (!await varidate()) {
+    if (!await validate()) {
         return;
     }
     var url = 'http://localhost:8000/api/products/' + id.value;
@@ -152,6 +162,34 @@ function oncancel() {
     console.log('oncancel');
     router.push({ name: 'product-list' });
 }
+
+// sortidの現在の最大値を取得
+async function getMaxSortid() {
+    const url = 'http://localhost:8000/api/products';
+    const response = await axios.get(url);
+    const products = response.data.data;
+    return Math.max(...products.map(product => product.sortid));
+}
+// idが0の場合は初期値を設定 sortidは最大値+1
+if (id.value == 0) {
+    item.value = {
+        id: 0,
+        slug: '',
+        name: '',
+        description: '',
+        image: '',
+        price: '',
+        sortid: 0,
+        display: false,
+        created_at: '',
+        updated_at: '',
+        is_delete: false
+    };
+    getMaxSortid().then(maxSortid => {
+        item.value.sortid = maxSortid + 1;
+    });
+}
+
 
 
 /**
