@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>pick Item View : {{ id }}</h1>
+        <h1>Product Item View : {{ id }}</h1>
 
         <div class="mb-3">
             <label for="id" class="form-label">ID</label>
@@ -55,7 +55,7 @@ import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 
-interface pick {
+interface ProductStore {
     id: number;
     slug: string;
     name: string;
@@ -67,12 +67,36 @@ interface pick {
     created_at: string;
     updated_at: string;
     is_delete: boolean;
+    products:  [{ 
+        id: number;
+        store_id: number;
+        product_id: number;
+        stock: number;
+        created_at: string;
+        updated_at: string;
+        delete_at: null;
+        product: {
+            id: number;
+            slug: string;
+            name: string;
+            description: string;
+            image: string;
+            price: string;
+            sortid: number;
+            display: boolean;
+            created_at: string;
+            updated_at: string;
+            delete_at: boolean;
+        }
+    }]
 }
 
 const router = useRouter();
 const id = ref(router.currentRoute.value.params.id);
+const products = ref(router.currentRoute.value.params.products);
+const store_id = ref(router.currentRoute.value.params.store_id);
 // 初期値をいれておく
-const item = ref<pick>({ 
+const item = ref<ProductStore>({ 
     id: 0, 
     slug: '', 
     name: '',
@@ -84,23 +108,44 @@ const item = ref<pick>({
     created_at: '', 
     updated_at: '', 
     is_delete: false,
+    products: [{ 
+        id: 0,
+        store_id: 0,
+        product_id: 0,
+        stock: 0,
+        created_at: '',
+        updated_at: '',
+        delete_at: null,
+        product: {
+            id: 0,
+            slug: '',
+            name: '',
+            description: '',
+            image: '',
+            price: '',
+            sortid: 0,
+            display: false,
+            created_at: '',
+            updated_at: '',
+            delete_at: false
+        }
+    }]
 });
 
 /**
- * Loads the category item data from the server.
+ * Loads the productstore item data from the server.
  * @async
  * @function onload
  */
 async function onload() {
     console.log('onload');
-    var url = 'http://localhost:8000/api/products/' + id.value;
+    var url = `http://localhost:8000/api/stores/${products.store_id.value}/products/${id.value}`;
     const response = await axios.get(url);
     item.value = response.data.data;
     // 日時をフォーマット変換しておく
     item.value.created_at = formatDateTime(item.value.created_at);
     item.value.updated_at = formatDateTime(item.value.updated_at);
 }
-
 /// ロード時に実行
 onMounted(onload);
 
@@ -112,10 +157,10 @@ async function validate() {
         return false;
     }
     // slugが重複している場合はエラー
-    const url = 'http://localhost:8000/api/puroducts';
+    const url = `http://localhost:8000/api/stores/${id.value}/products`;
     const response = await axios.get(url);
-    const picks = response.data.data;
-    const found = picks.find(pick => pick.slug === item.value.slug);
+    const productstores = response.data.data;
+    const found = productstores.find(productstore => productstore.slug === item.value.slug);
     if (found && found.id !== item.value.id) {
         alert('Slugが重複しています');
         return false;
@@ -138,9 +183,8 @@ async function validate() {
     return true;
 }
 
-
 /**
- * Updates the category item.
+ * Updates the productstore item.
  * @async
  * @function onupdate
  * @returns {Promise<void>}
@@ -151,28 +195,27 @@ async function onupdate() {
     if (!await validate()) {
         return;
     }
-    var url = 'http://localhost:8000/api/products/' + id.value;
-    const response = await axios.put(url, item.value);
-    router.push({ name: 'picks-list' });
+    var url = `http://localhost:8000/api/stores/${id.value}/products/`;
+    const response = await axios.put(url, item.value)
+    router.push({ name: 'product-store-list' });
 }
 
 /**
  * Handles the cancel action.
- * Navigates back to the 'category' route.
+ * Navigates back to the 'productstore' route.
  */
 function oncancel() {
     console.log('oncancel');
-    router.push({ name: 'picks-list' });
+    router.push({ name: 'product-store-list',params: { id: id.value  } });
 }
 
 // sortidの現在の最大値を取得
 async function getMaxSortid() {
-    const url = 'http://localhost:8000/api/products';
+    const url = `http://localhost:8000/api/stores/${id.value}/products`;
     const response = await axios.get(url);
-    const picks = response.data.data;
-    return Math.max(...picks.map(pick => pick.sortid));
+    const products = response.data.data;
+    return Math.max(...products.map(productstore => productstore.sortid));
 }
-
 // idが0の場合は初期値を設定 sortidは最大値+1
 if (id.value == 0) {
     item.value = {

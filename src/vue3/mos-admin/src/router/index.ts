@@ -11,6 +11,9 @@ import SetMenuListView from '@/views/SetMenuListView.vue'
 import SetMenuItemView from '@/views/SetMenuItemView.vue'
 import TopLictView from '@/views/TopLictView.vue'
 import TopItemView from '@/views/TopItemView.vue'
+import StoreProductListView from '@/views/StoreProductListView.vue'
+import StoreProductItemView from '@/views/StoreProductItemView.vue'
+
 
 import CategoryListView from '@/views/CategoryListView.vue'
 import CategoryItemView from '@/views/CategoryItemView.vue'
@@ -84,6 +87,16 @@ const router = createRouter({
       path: '/top-list/:id',
       name: 'top-item',
       component: TopItemView
+    },
+    {
+      path: '/product-store-list/:id',
+      name: 'product-store-list',
+      component: StoreProductListView
+    },
+    {
+      path: '/product-store-list-item/:id',
+      name: 'product-store-list-item',
+      component: StoreProductItemView
     },
 
 

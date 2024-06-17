@@ -99,7 +99,7 @@ function ondelete(item) {
 
 // 上へボタン 上の行と選択した行のsortidを交換する
 // （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
-function onUp(item) {
+async function onUp(item) {
     console.log('onUp' + item.title);
     const currentIndex = picks.value.findIndex(pick => pick.sortid === item.sortid);
     if (currentIndex > 0) {
@@ -107,14 +107,13 @@ function onUp(item) {
         picks.value[currentIndex - 1].sortid = item.sortid;
         item.sortid = tempSortid;
         onupdate(item);
-        onupdate(picks.value[currentIndex - 1]);
+        await onupdate(picks.value[currentIndex - 1]);
         console.log(item.sortid);
-        // ページをリロード
-        
+        await onload();
     }
 };
 // 下へボタン
-function onDown(item) {
+async function onDown(item) {
     console.log('onDown' + item.title);
     const currentIndex = picks.value.findIndex(pick => pick.sortid === item.sortid);
     if (currentIndex < picks.value.length - 1) {
@@ -122,8 +121,9 @@ function onDown(item) {
         picks.value[currentIndex + 1].sortid = item.sortid;
         item.sortid = tempSortid;
         onupdate(item);
-        onupdate(picks.value[currentIndex + 1]);
+        await onupdate(picks.value[currentIndex + 1]);
         console.log(item.sortid);
+        await onload();
     }
 };
 

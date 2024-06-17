@@ -2,7 +2,7 @@
     <div>
         <h1>注文方法を選択</h1>
     </div>
-    <div>
+    <div class="order-button">
         <button class="btn btn-primary" @click="onOrder">お持ち帰り</button>
         <button class="btn btn-primary" @click="onOrder">お届け</button>
         <!--
@@ -12,10 +12,10 @@
     </div>
     <br />
 
-    <Carousel :itemsToShow="1.8" :wrapAround="true" :autoplay="5000" :transition="1000" :pauseAutoplayOnHover="true">
+    <Carousel :itemsToShow="carouselItemsToShow" :wrapAround="true" :autoplay="5000" :transition="1000" :pauseAutoplayOnHover="true">
         <slide v-for="image in images" :key="image.id" class="slide-list">
             <a href="/product-list/special">
-                <img width="500" height="300" src="../assets/top-hamburger.jpg" alt="ハンバーガー"/>
+                <img width="500" height="300" src="http://localhost:8000/storage/images/m001.jpeg"  alt="ハンバーガー"/>
             </a>
         </slide>
         <template #addons>
@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted, onBeforeUnmount} from 'vue';
 import { defineComponent } from 'vue'
 import { Carousel, Slide, Navigation, Pagination } from 'vue3-carousel';
 import 'vue3-carousel/dist/carousel.css';
@@ -49,6 +49,31 @@ function onOrder() {
 }
 
 
+const carouselItemsToShow = ref(1.8); // カルーセルの初期表示数
+
+const adjustCarouselSize = () => {
+    // ウィンドウの幅を取得して、適切なカルーセルの表示数を計算する
+    const windowWidth = window.innerWidth;
+    if (windowWidth < 768) {
+        carouselItemsToShow.value = 1; // スマートフォン用の表示数
+    } else if (windowWidth < 1024) {
+        carouselItemsToShow.value = 1.5; // タブレット用の表示数
+    } else {
+        carouselItemsToShow.value = 1.8; // デスクトップ用の表示数
+    }
+};
+
+onMounted(() => {
+    // ウィンドウのリサイズイベントを監視して、カルーセルのサイズを調整する
+    window.addEventListener("resize", adjustCarouselSize);
+    // 初期化時にカルーセルのサイズを調整する
+    adjustCarouselSize();
+});
+
+onBeforeUnmount(() => {
+    // コンポーネントが破棄される前にイベントリスナーを削除する
+    window.removeEventListener("resize", adjustCarouselSize);
+});
 
 
 
@@ -60,34 +85,30 @@ h1 {
     text-align: center;
 }
 
-button {
- /* ボタンの幅を画面幅の50%に設定 */
-    min-width: 250px; /* 最小幅を指定 */
-    max-width: 600px; /* 最大幅を指定 */
-    height: 100px; /* ボタンの高さを指定 */
-    font-size: 20px; /* フォントサイズを指定 */
-    margin: 20px; /* ボタン間の余白を指定 */
-    box-sizing: border-box; /* paddingとborderをwidthに含める */
-    border-radius: 10px; /* ボタンの角を丸くする */
-    /*ボタンの位置を中央*/
-    position: relative;
-    left: 26.5%;
-
+.order-button {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
     
+    /* ボタンのサイズを変更 */
+    .btn {
+        width: 250px;
+        height: 100px;
+        font-size: 1.6em;
+    }
 }
 
 .slide-list {
-
 }
 
 .carousel__slide {
-    height: 300px;
-    width: 500px;
     background-color: red;
-
 
     &:nth-child(2n) {
     background-color: green;
   }
 }
 </style>
+
+

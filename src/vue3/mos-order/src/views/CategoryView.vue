@@ -5,31 +5,32 @@
     <div class="page-body">
         <div class="menu" v-for="category in categories" :key="category.id">
             <details class="accordion">
-            <summary class="menu-btn" id="Special_menu">
-                <div class="menu-icon">
-                    <img alt="icon" src=""></div>
+                <summary class="menu-btn" id="Special_menu">
+                    <div class="menu-icon">
+                        <img alt="icon" src="">
+                    </div>
                     <p class="menu-text">{{ category.title }}</p>
-            </summary>
-            <div class="accordion-menu">
-                <div class="ProductLink-wrap">
-                    <ul v-for="product in products" :key="product.id" class="ProductLink-list">
-                        <li class="ProductLink-item">
-                            <a class="ProductLink" v-bind:href="`product-list/${category.slug}`"><!-- herf="カートに入れる画面" -->
-                                <div class="ProductLink-inner">
-                                    <div class="ProductLink-img">
-                                        <img :src="product.image" alt="product.name">
+                </summary>
+                <div class="accordion-menu ts-content">
+                    <div class="ProductLink-wrap">
+                        <ul v-for="product in products" :key="product.id" class="ProductLink-list">
+                            <li class="ProductLink-item">
+                                <a class="ProductLink" v-bind:href="`product-list/${category.slug}`"><!-- herf="カートに入れる画面" -->
+                                    <div class="ProductLink-inner">
+                                        <div class="ProductLink-img">
+                                            <img :src="product.image" alt="product.name">
+                                        </div>
+                                        <div class="ProductLink-name">
+                                            <p class="Link">
+                                                {{ product.name }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div class="ProductLink-name">
-                                        <p class="Link">
-                                            {{ product.name }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </a>
-                        </li>
-                    </ul>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-            </div>
             </details>
         </div>
     </div>
@@ -94,27 +95,122 @@ onMounted(onload2) ;
 
 
 
+
+
+/**
+ * ブラウザの標準機能(Web Animations API)を使ってアコーディオンのアニメーションを制御します
+ */
+const setUpAccordion = () => {
+    const details = document.querySelectorAll(".accordion");
+    const RUNNING_VALUE = "running"; // アニメーション実行中のときに付与する予定のカスタムデータ属性の値
+    const IS_OPENED_CLASS = "is-opened"; // アイコン操作用のクラス名
+
+    details.forEach((element) => {
+        const summary = element.querySelector(".menu-btn");
+        const content = element.querySelector(".accordion-menu");
+
+        summary.addEventListener("click", (event) => {
+            // デフォルトの挙動を無効化
+            event.preventDefault();
+
+            // 連打防止用。アニメーション中だったらクリックイベントを受け付けないでリターンする
+            if (element.dataset.animStatus === RUNNING_VALUE) {
+                return;
+            }
+
+            // detailsのopen属性を判定
+            if (element.open) {
+                // アコーディオンを閉じるときの処理
+                // アイコン操作用クラスを切り替える(クラスを取り除く)
+                element.classList.toggle(IS_OPENED_CLASS);
+
+                // アニメーションを実行
+                const closingAnim = content.animate(closeKeyframes(content), animTiming);
+                // アニメーション実行中用の値を付与
+                element.dataset.animStatus = RUNNING_VALUE;
+
+                // アニメーションの完了後に
+                closingAnim.onfinish = () => {
+                    // open属性を取り除く
+                    element.removeAttribute("open");
+                    // アニメーション実行中用の値を取り除く
+                    element.dataset.animStatus = "";
+                };
+            } else {
+                // アコーディオンを開くときの処理
+                // open属性を付与
+                element.setAttribute("open", "true");
+
+                // アイコン操作用クラスを切り替える(クラスを付与)
+                element.classList.toggle(IS_OPENED_CLASS);
+
+                // アニメーションを実行
+                const openingAnim = content.animate(openKeyframes(content), animTiming);
+                // アニメーション実行中用の値を入れる
+                element.dataset.animStatus = RUNNING_VALUE;
+
+                // アニメーション完了後にアニメーション実行中用の値を取り除く
+                openingAnim.onfinish = () => {
+                    element.dataset.animStatus = "";
+                };
+            }
+        });
+    });
+}
+
+
+
+// アニメーションの時間とイージングをまとめて設定
+const animTiming  = {
+    duration: 300,
+    easing: 'ease-in-out'
+};
+
+// アコーディオンを閉じる時のキーフレーム
+const closeKeyframes = (content) => [
+    { height: content.offsetHeight + `px`, opacity: 1 },
+    { height: 0, opacity: 0 }
+];
+
+// アコーディオンを開く時のキーフレーム
+const openKeyframes = (content) => [
+    { height: 0, opacity: 0 },
+    { height: content.offsetHeight + `px`, opacity: 1 }
+];
+
+// ページ読み込み時にアコーディオンのセットアップを実行
+onMounted(setUpAccordion);
+
+
+
+
 </script>
 
 <style scoped>
 /* Add your custom styles here */
 
+.accordion-menu {
+    overflow: hidden;
+}
 
+.ProductLink-wrap {
+    padding: 24px 48px;
+}
 
 
 .menu-btn {
     width: 100%;
-  padding: 0.9375rem 1.25rem;
-  /* change theme >> */
-  border-top: 1px solid #007749;
-  /* << change theme */
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  min-height: 3.75rem;
+    padding: 0.9375rem 1.25rem;
+    /* change theme >> */
+    border-top: 1px solid #007749;
+    /* << change theme */
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    min-height: 3.75rem;
 }
 
 
@@ -133,21 +229,17 @@ onMounted(onload2) ;
   right: 0;
   width: 1.125rem;
   height: 0.1875rem;
-  -webkit-transform: rotate(90deg);
-          transform: rotate(90deg);
-  /* change theme >> */
+  transform: rotate(90deg);
   background: #007749;
-  /* << change theme */
   border-radius: 2px;
-  -webkit-transition: all .3s ease-in-out;
-  transition: all .3s ease-in-out;
+  transition: all 0.3s ease-in-out;
 }
-/*
+
 .menu-btn .menu-text.is-open::before {
   -webkit-transform: rotate(180deg);
           transform: rotate(180deg);
 }
-*/
+
 .menu-btn .menu-text::after {
   content: "";
   position: absolute;
@@ -161,14 +253,13 @@ onMounted(onload2) ;
   border-radius: 2px;
 }
 
-/*
+
 .accordion-menu-inner .menulink-list {
   margin: 0 -0.875rem;
   -webkit-box-pack: start;
       -ms-flex-pack: start;
           justify-content: flex-start;
 }
-*/
 
 
 

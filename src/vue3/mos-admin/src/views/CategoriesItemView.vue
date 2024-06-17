@@ -35,11 +35,11 @@
                 </div>
                 <div class="mb-3" v-if="item.id !=0">
                     <label for="created_at" class="form-label">Created At:</label>
-                    {{ item.created_at }}
+                    <div>{{ formatDateTime(item.created_at.toString()) }}</div>
                 </div>
                 <div class="mb-3" v-if="item.id !=0">
                     <label for="updated_at" class="form-label">Updated At:</label>
-                    {{ item.updated_at }}
+                    <div>{{ formatDateTime(item.updated_at.toString()) }}</div>
                 </div>
             </div>
         </div>
@@ -54,6 +54,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { useCategoryStore } from '@/stores/category';
 
 interface Category {
     id: number;
@@ -64,15 +65,25 @@ interface Category {
     sortid: number;
     price: number;
     display: boolean;
-    created_at: string;
-    updated_at: string;
-    is_delete: boolean;
+    created_at: Date;
+    updated_at: Date;
+    deleted_at: Date | null;
 }
 
+const categoryStore = useCategoryStore();
 
 const router = useRouter();
 const id = ref(router.currentRoute.value.params.id);
 
+// sortidの現在の最大値を取得
+async function getMaxSortid() {
+    const maxSortid = categoryStore.categories.values.reduce((max, category) => {
+        return category.sortid > max ? category.sortid : max;
+    }, 0);
+    return maxSortid;
+}
+
+// 初期値を設定 sortidは現在の最大値+1
 const item = ref<Category>({ 
     id: 0, 
     slug: '', 
@@ -82,9 +93,12 @@ const item = ref<Category>({
     sortid: 0, 
     price: 0,
     display: false, 
-    created_at: '', 
-    updated_at: '', 
-    is_delete: false 
+    created_at: new Date(), 
+    updated_at: new Date(), 
+    deleted_at: null,
+});
+getMaxSortid().then(maxSortid => {
+    item.value.sortid = maxSortid + 1;
 });
 
 async function onload() {
@@ -93,26 +107,33 @@ async function onload() {
     const response = await axios.get(url);
     item.value = response.data.data;
     // 日時をフォーマット変換しておく
-    item.value.created_at = formatDateTime(item.value.created_at);
-    item.value.updated_at = formatDateTime(item.value.updated_at);
+    // item.value.created_at = formatDateTime(item.value.created_at.toString());
+    // item.value.updated_at = formatDateTime(item.value.updated_at.toString();
 }
 
 onMounted(onload);
 
 // バリデーションチェック
-async function varidate() {
+async function validate() {
+    // slugが空の場合はエラー
+    if (item.value.slug === '') {
+        alert('Slugを入力してください');
+        return false;
+    }
+    // slugが重複している場合はエラー
+    const found = categoryStore.categories.values.find((category) => category.slug === item.value.slug);
+    if (found && found.id !== item.value.id) {
+        alert('Slugが重複しています');
+        return false;
+    }
     // タイトルが空の場合はエラー
     if (item.value.title === '') {
         alert('タイトルを入力してください');
         return false;
     }
-    // slugが重複している場合はエラー
-    const url = 'http://localhost:8000/api/categories';
-    const response = await axios.get(url);
-    const categories = response.data.data;
-    const duplicate = categories.find(category => category.slug === item.value.slug);
-    if (duplicate && duplicate.id !== item.value.id) {
-        alert('Slugが重複しています');
+    // sortidが0以下の場合はエラー
+    if (item.value.sortid <= 0) {
+        alert('Sort IDは1以上を入力してください');
         return false;
     }
     return true;
@@ -129,7 +150,7 @@ async function varidate() {
 async function onupdate() {
     console.log('onupdate');
     // バリデーションチェック
-    if (!await varidate()) {
+    if (!await validate()) {
         return;
     }
     var url = 'http://localhost:8000/api/categories/' + id.value;
@@ -145,6 +166,34 @@ function oncancel() {
     console.log('oncancel');
     router.push({ name: 'categories-list' });
 }
+
+
+
+/*
+// idが0の場合は、初期値を設定 sortidは現在の最大値+1
+if (id.value == 0) {
+    item.value = { 
+        id: 0, 
+        slug: '', 
+        title: '', 
+        description: 'aaa', 
+        image: '', 
+        sortid: 0, 
+        price: 0,
+        display: false, 
+        created_at: new Date(),
+        updated_at: new Date(),
+        deleted_at: null,
+    };
+    getMaxSortid().then(maxSortid => {
+        item.value.sortid = maxSortid + 1;
+    });
+}
+*/
+
+
+
+
 
 
 /**
@@ -196,8 +245,5 @@ function convertToISO(datetimeStr: string) {
 
 <style scoped>
 /* Your styles here 
-/:idをかく
-WebApiに入っているカテゴリーテーブルもってくる。編集機能をつける
-onMounted
 */
 </style>

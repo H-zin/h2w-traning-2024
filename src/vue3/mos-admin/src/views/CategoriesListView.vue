@@ -59,8 +59,10 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { useCategoryStore } from '@/stores/category';
 
 const router = useRouter();
+const categoryStore = useCategoryStore();
 
 const categories = ref([
     { id: 1, slug: 'slug 1', title: 'Category 1' , description: 'Description 1', image: 'Image 1', sortid: 1, price: 1, display: false ,created_at: 'created_at 1', updated_at: 'updated_at 1',is_delete: false},
@@ -70,6 +72,7 @@ async function onload() {
     const url = "http://localhost:8000/api/categories";
     const response = await axios.get(url);
     categories.value = response.data.data.sort((a, b) => a.sortid - b.sortid);
+    categoryStore.categories.values = response.data.data;
 }
 onMounted(onload);
 
@@ -96,17 +99,25 @@ function ondelete(item) {
     }
 };
 
-// 削除処理 DBから削除 一覧から削除にするため、is_deleteをtrueにするのが正解
-async function deleteCategory(item) {
+// 削除処理 非表示にするため、deleted_atをtrueにする
+async function deleteCategory(category) {
+    console.log('deleteCategory');
+    const url = `http://localhost:8000/api/categories/${category.id}`;
     try {
-        const url = `http://localhost:8000/api/categories/${item.id}`;
-        await axios.delete(url);
-        categories.value = categories.value.filter(category => category.id !== item.id);
+        category.deleted_at = true;
+        await axios.put(url, category);
+        // ページを更新
+        await onload();
     } catch (error) {
         console.error(error);
     }
 };
 
+// 元に戻すボタン
+
+
+
+/*
 // 復元ボタン
 function onRestore(item) {
     console.log('onRestore' + item.title);
@@ -129,6 +140,7 @@ async function restoreCategory(item) {
         console.error(error);
     }
 };
+*/
 //　ラムダ式で書いているが、functionで書いても良い。行が長くなるときはfunctionで書く。
 //  function内で宣言した変数は外では使えない。classでまとめて記述するのも一つの方法。
 //　121行目のcategoryは仮変数である。JavaScript以外で、オブジェクト以外を当てはめるとエラーになることも。
@@ -136,7 +148,7 @@ async function restoreCategory(item) {
 
 
 // 上へボタン 上の行と選択した行のsortidを交換する
-// （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
+// （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）
 async function onUp(item) {
     console.log('onUp' + item.title);
     const currentIndex = categories.value.findIndex(category => category.sortid === item.sortid);
@@ -151,6 +163,7 @@ async function onUp(item) {
         await onload();
     }
 };
+
 // 下へボタン
 async function onDown(item) {
     console.log('onDown' + item.title);

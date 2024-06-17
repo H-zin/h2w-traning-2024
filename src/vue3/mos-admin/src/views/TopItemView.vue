@@ -4,7 +4,7 @@
 
         <div class="mb-3">
             <label for="id" class="form-label">ID</label>
-            <input type="text" id="id" v-model="item.id" class="form-control">
+            {{ item.id }}
         </div>  
         <div class="mb-3">
             <label for="slug" class="form-label">Slug</label>
@@ -14,23 +14,9 @@
             <label for="name" class="form-label">Name</label>
             <input type="text" id="name" v-model="item.name" class="form-control">
         </div>
-        <!--
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-            <input type="text" id="title" v-model="item.title" class="form-control">
-        </div>
-        -->
-        <div class="mb-3">
-            <label for="description" class="form-label">Description</label>
-            <textarea id="description" v-model="item.description" class="form-control"></textarea>
-        </div>
         <div class="mb-3">
             <label for="image" class="form-label">Image</label>
             <input type="text" id="image" v-model="item.image" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="price" class="form-label">Price</label>
-            <input type="text" id="price" v-model="item.price" class="form-control">
         </div>
         <div class="mb-3">
             <label for="sortid" class="form-label">Sort ID</label>
@@ -40,17 +26,13 @@
             <label for="display" class="form-label">Display</label>
             <input type="checkbox" id="display" v-model="item.display" class="form-check-input">
         </div>
-        <div class="mb-3">
+        <div class="mb-3" v-if="item.id !=0">
             <label for="created_at" class="form-label">Created At</label>
-            <input type="datetime-local" id="created_at" v-model="item.created_at" class="form-control">
+            {{ item.created_at }}
         </div>
-        <div class="mb-3">
+        <div class="mb-3" v-if="item.id !=0">
             <label for="updated_at" class="form-label">Updated At</label>
-            <input type="datetime-local" id="updated_at" v-model="item.updated_at" class="form-control">
-        </div>
-        <div class="mb-3">
-            <label for="is_delete" class="form-label">Is Delete</label>
-            <input type="checkbox" id="is_delete" v-model="item.is_delete" class="form-check-input">
+            {{ item.updated_at }}
         </div>
         <hr />
 
@@ -77,7 +59,6 @@ interface top {
     created_at: string;
     updated_at: string;
     is_delete: boolean;
-    hidden: boolean;
 }
 
 const router = useRouter();
@@ -95,7 +76,6 @@ const item = ref<top>({
     created_at: '', 
     updated_at: '', 
     is_delete: false,
-    hidden: false
 });
 
 /**
@@ -116,6 +96,35 @@ async function onload() {
 /// ロード時に実行
 onMounted(onload);
 
+// バリデーションチェック
+async function validate() {
+    // slugが空の場合はエラー
+    if (item.value.slug === '') {
+        alert('Slugを入力してください');
+        return false;
+    }
+    // slugが重複している場合はエラー
+    const url = 'http://localhost:8000/api/products';
+    const response = await axios.get(url);
+    const tops = response.data.data;
+    const found = tops.find(top => top.slug === item.value.slug);
+    if (found && found.id !== item.value.id) {
+        alert('Slugが重複しています');
+        return false;
+    }
+    // 商品名が空の場合はエラー
+    if (item.value.name === '') {
+        alert('名前を入力してください');
+        return false;
+    }
+    // sortidが0以下の場合はエラー
+    if (item.value.sortid <= 0) {
+        alert('Sort IDは1以上の数値を入力してください');
+        return false;
+    }
+}
+
+
 /**
  * Updates the category item.
  * @async
@@ -124,6 +133,10 @@ onMounted(onload);
  */
 async function onupdate() {
     console.log('onupdate');
+    // バリデーションチェック
+    if (!await validate()) {
+        return;
+    }
     var url = 'http://localhost:8000/api/products/' + id.value;
     const response = await axios.put(url, item.value);
     router.push({ name: 'top-list' });
@@ -136,6 +149,34 @@ async function onupdate() {
 function oncancel() {
     console.log('oncancel');
     router.push({ name: 'top-list' });
+}
+
+// sortidの現在の最大値を取得
+async function getMaxSortid() {
+    const url = 'http://localhost:8000/api/products';
+    const response = await axios.get(url);
+    const tops = response.data.data;
+    return Math.max(...tops.map(top => top.sortid));
+}
+
+// idが0の場合は初期値を設定 sortidは最大値+1
+if (id.value == 0) {
+    item.value = {
+        id: 0,
+        slug: '',
+        name: '',
+        description: '',
+        image: '',
+        price: '',
+        sortid: 0,
+        display: false,
+        created_at: '',
+        updated_at: '',
+        is_delete: false
+    };
+    getMaxSortid().then(maxSortid => {
+        item.value.sortid = maxSortid + 1;
+    });
 }
 
 
@@ -156,7 +197,7 @@ function formatDateTime(datetimeStr: string) {
     const minutes = String(date.getMinutes()).padStart(2, '0');
     
     // 目的の形式にフォーマット
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+    return `${year}年${month}月${day}日${hours}時${minutes}分`;
 }
 
 /**

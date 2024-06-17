@@ -101,32 +101,32 @@ async function deleteProduct(item) {
 
 // 上へボタン 上の行と選択した行のsortidを交換する
 // （上のsortidを選択した行にいれる処理＋選択した行のsortidを上の行の要素に入れる処理）アップデート二回
-function onUp(item) {
-    console.log('onUp' + item.title);
+async function onUp(item) {
+    console.log('onUp' + item.name);
     const currentIndex = tops.value.findIndex(top => top.id === item.id);
     if (currentIndex > 0) {
         const tempSortid = tops.value[currentIndex - 1].sortid;
         tops.value[currentIndex - 1].sortid = item.sortid;
         item.sortid = tempSortid;
         onupdate(item);
-        onupdate(tops.value[currentIndex - 1]);
+        await onupdate(tops.value[currentIndex - 1]);
         console.log(item.sortid);
-        // ページをリロード
-        
+        await onload();
     }
-}
+};
 
 // 下へボタン
-function onDown(item) {
-    console.log('onDown' + item.title);
+async function onDown(item) {
+    console.log('onDown' + item.name);
     const currentIndex = tops.value.findIndex(top => top.id === item.id);
     if (currentIndex < tops.value.length - 1) {
         const tempSortid = tops.value[currentIndex + 1].sortid;
         tops.value[currentIndex + 1].sortid = item.sortid;
         item.sortid = tempSortid;
         onupdate(item);
-        onupdate(tops.value[currentIndex + 1]);
+        await onupdate(tops.value[currentIndex + 1]);
         console.log(item.sortid);
+        await onload();
     }
 }
 

@@ -2,6 +2,7 @@
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 import router from './router';
+import { useCartStore } from './stores/Cart';
 
 
 
@@ -27,6 +28,17 @@ function clickCart() {
   router.push('/cart')
 }
 
+// カートに商品情報を取得
+const cartStore = useCartStore();
+const { items } = cartStore;
+
+// カートボタンの上にカートの商品数を表示
+function countCart() {
+  return items.length;
+}
+
+
+
 
 
 </script>
@@ -51,7 +63,11 @@ function clickCart() {
         <RouterLink to="/order-list">注文画面</RouterLink>
       </nav>
     </div>
+    <button v-if="items.length > 0" class="onCart" @click="clickCart">カート：{{ countCart() }}</button>
+    
   </header>
+  
+
 
   <RouterView />
   <hr />
@@ -61,6 +77,21 @@ function clickCart() {
 </template>
 
 <style scoped>
+/*画面の右下にカートボタンを設置*/
+.onCart {
+  position: fixed;
+  bottom: 10%;
+  right: 10%;
+  background-color: #f00;
+  color: #fff;
+  border: none;
+  padding: 40px 20px;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+
+
 header {
   line-height: 1.5;
   max-height: 100vh;
