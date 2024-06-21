@@ -1,12 +1,12 @@
 <template>
     <div>
         <h1>ハンバーガー注文 商品一覧</h1>
+        <!--選択された店舗名を表示---->
+        <h2>{{ store.name }}</h2>
 
-        <select v-model="stores">
-            <!--起動時は「店舗指定」と表示-->
-            
+        <select v-model="store.id" @change="onStoreChange">
             <option v-for="store in stores" :key="store.id" :value="store.id">
-                {{ store.name }}
+                {{ store.name }}                
             </option>
         </select>
 
@@ -32,7 +32,7 @@
                     <td>{{ productstore.slug }}</td>
                     <td>{{ productstore.name }}</td>
                     <td>{{ productstore.description }}</td>
-                    <td>{{ productstore.image }}</td>
+                    <td><img width="60" height="60" :src="`http://localhost:8000/storage/images/${productstore.image}.jpeg`" alt="product.name"></td>
                     <td>{{ productstore.price + '円' }}</td>
                     <td class="checkbox"><input type="checkbox"></td>
                     <td class="checkbox"><input type="checkbox"></td>
@@ -54,33 +54,79 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
+import { log } from 'console';
 
 const router = useRouter();
-const id = ref(router.currentRoute.value.params.id);
+
+interface ProductStore {
+    id: number;
+    slug: string;
+    name: string;
+    description: string;
+    image: string;
+    price: string;
+    sortid: number;
+    display: number;
+    created_at: string;
+    updated_at: string;
+    delete_at: string;
+}
+
+interface Store {
+    id: number;
+    name: string;
+    address: string;
+}
+
 
 const productstores = ref([
     { id: 1, slug: 'slug 1', name: 'Category 1' , description: 'Description 1', image: 'Image 1',  price: 'Price 1', sortid: 1, display: 1 ,created_at: 'created_at 1', updated_at: 'updated_at 1',delete_at: null},
 ]);
 
-const stores = ref([
-    { id: 1, name: 'Store 1' , address: '' ,created_at: 'created_at 1', updated_at: 'updated_at 1',delete_at: null},
+const stores = ref<Store[]>([
+    { id: 1, name: 'Store 1', address: '' },
 ]);
 
+const store = ref<Store>({
+    id: 0,
+    name: '',
+    address: '',
+});
+
 async function onload() {
+    const id = ref(router.currentRoute.value.params.id);
     const url = `http://localhost:8000/api/stores/${id.value}/products`;
     const response = await axios.get(url);
-    productstores.value = response.data.data[0].products.product.sort((a, b) => a.sortid - b.sortid);
+    store.value = response.data.data;
+
+    const items = response.data.data.products.sort((a, b) => a.sortid - b.sortid);
+    console.log(items);
+    
+    productstores.value = [];
+    for (const item of items) {
+        //console.log(item.product);
+        productstores.value.push(item.product);
+    }
+
 }
 onMounted(onload);
 
-
 async function onload2() {
     const url = `http://localhost:8000/api/stores`;
-    console.log( url )
     const response = await axios.get(url);
-    stores.value = response.data.data; 
+    stores.value = response.data.data;
 }
-onMounted(onload2) ;
+onMounted(onload2);
+
+
+async function onStoreChange() {
+    console.log(`${store.value.name}から${stores.value.find(s => s.id === store.value.id)?.name}へ変更しました`);
+    await router.push({ name: 'product-store-list', params: { id: store.value.id } });
+    onload();
+}
+
+
+
 
 
 // 新規作成ボタン

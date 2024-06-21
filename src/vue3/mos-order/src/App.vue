@@ -63,7 +63,7 @@ function countCart() {
         <RouterLink to="/order-list">注文画面</RouterLink>
       </nav>
     </div>
-    <button v-if="items.length > 0" class="onCart" @click="clickCart">カート：{{ countCart() }}</button>
+    <button v-if="items.length > 0"  class="onCart" @click="clickCart">カート：{{ countCart() }}</button>
     
   </header>
   
@@ -88,6 +88,7 @@ function countCart() {
   padding: 40px 20px;
   border-radius: 50px;
   cursor: pointer;
+  z-index: 1;
 }
 
 

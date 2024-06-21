@@ -21,6 +21,7 @@
         <div class="mb-3">
             <label for="image" class="form-label">Image</label>
             <input type="text" id="image" v-model="item.image" class="form-control">
+            <img width="60" height="60" :src="`http://localhost:8000/storage/images/${item.image}.jpeg`" alt="product.name">
         </div>
         <div class="mb-3">
             <label for="price" class="form-label">Price</label>
@@ -139,9 +140,17 @@ const item = ref<ProductStore>({
  */
 async function onload() {
     console.log('onload');
-    var url = `http://localhost:8000/api/stores/${products.store_id.value}/products/${id.value}`;
+    var url = `http://localhost:8000/api/stores/${id.value}/products/${id.value}`;
     const response = await axios.get(url);
     item.value = response.data.data;
+
+    const items = response.data.data.products;
+    products.value = [];
+    for (const item of items) {
+        products.value.push(item.product);
+    }
+
+
     // 日時をフォーマット変換しておく
     item.value.created_at = formatDateTime(item.value.created_at);
     item.value.updated_at = formatDateTime(item.value.updated_at);

@@ -8,7 +8,7 @@
                 <div class="Cart-inner">
                     <div class="Cart-img">
                         <!--商品画像-->
-                        <img :src="product.image" alt="product.name">
+                        <img width="150" height="150" :src="`http://localhost:8000/storage/images/${product.image}.jpeg`" alt="product.name">
                     </div>
                     <div class="Cart-box">
                         <!--商品名-->

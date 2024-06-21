@@ -7,7 +7,7 @@
                     <a class="ProductLink"><!-- herf="カートに入れる画面" -->
                         <div class="ProductLink-inner">
                             <div class="ProductLink-img">
-                                <img :src="product.image" alt="product.name">
+                                <img width="300" height="240" :src="`http://localhost:8000/storage/images/${product.image}.jpeg`" alt="product.name">
                             </div>
                             <div class="ProductLink-name">
                                 <p class="Link">

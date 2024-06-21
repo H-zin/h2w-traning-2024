@@ -41,7 +41,7 @@
                     <td>{{ product.slug }}</td>
                     <td>{{ product.name }}</td>
                     <td>{{ product.description }}</td>
-                    <td>{{ product.image }}</td>
+                    <td><img width="60" height="60" :src="`http://localhost:8000/storage/images/${product.image}.jpeg`" alt="product.name"></td>
                     <td>{{ product.price + '円' }}</td>
                     <td class="checkbox"><input type="checkbox"></td>
                     <td class="checkbox"><input type="checkbox"></td>

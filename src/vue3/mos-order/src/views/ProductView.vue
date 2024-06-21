@@ -7,7 +7,7 @@
                     <a class="ProductLink"><!-- herf="カートに入れる画面"　カートボタンと共存したい -->
                         <div class="ProductLink-inner">
                             <div class="ProductLink-img">
-                                <img :src="product.image" alt="product.name">
+                                <img width="300" height="240" :src="`http://localhost:8000/storage/images/${product.image}.jpeg`" alt="product.name">
                             </div>
                             <div class="ProductLink-name">
                                 <p class="Link">
@@ -124,7 +124,7 @@ h1 {
     padding-right: 14px;
     margin-bottom: 60px;
     width: 300px;
-    height: 400px;
+    height: 500px;
 }
 
 .ProductLink:hover .ProductLink-inner {
@@ -140,7 +140,7 @@ h1 {
 
 .ProductLink-img {
     text-align: center;
-    margin: -15px -20px 0;
+    margin: -15px -36px 0;
     background-color: aqua;
     width: 300px;
     height: 240px;

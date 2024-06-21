@@ -21,6 +21,7 @@
         <div class="mb-3">
             <label for="image" class="form-label">Image</label>
             <input type="text" id="image" v-model="item.image" class="form-control">
+            <img width="300" height="300" :src="`http://localhost:8000/storage/images/${item.image}.jpeg`" alt="product.name">
         </div>
         <div class="mb-3">
             <label for="price" class="form-label">Price</label>
@@ -238,4 +239,9 @@ function convertToISO(datetimeStr: string) {
 
 <style scoped>
 /* Add your component styles here */
+
+img {
+    padding: 10px;
+}
+
 </style>
